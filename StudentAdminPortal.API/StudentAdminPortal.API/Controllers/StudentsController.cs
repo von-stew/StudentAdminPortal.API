@@ -11,11 +11,13 @@ namespace StudentAdminPortal.API.Controllers
     {
         private readonly IStudentRepository studentRepository;
         private readonly IMapper mapper;
+        private readonly IImageRepository imageRepository;
 
-        public StudentsController(IStudentRepository studentRepository, IMapper mapper)
+        public StudentsController(IStudentRepository studentRepository, IMapper mapper, IImageRepository imageRepository)
         {
             this.studentRepository = studentRepository;
             this.mapper = mapper;
+            this.imageRepository = imageRepository;
         }
 
         [HttpGet]
@@ -82,42 +84,42 @@ namespace StudentAdminPortal.API.Controllers
                 mapper.Map<Student>(student));
         }
 
-        //[HttpPost]
-        //[Route("[controller]/{studentId:guid}/upload-image")]
-        //public async Task<IActionResult> UploadImage([FromRoute] Guid studentId, IFormFile profileImage)
-        //{
-        //    var validExtensions = new List<string>
-        //    {
-        //       ".jpeg",
-        //       ".png",
-        //       ".gif",
-        //       ".jpg"
-        //    };
+        [HttpPost]
+        [Route("[controller]/{studentId:guid}/upload-image")]
+        public async Task<IActionResult> UploadImage([FromRoute] Guid studentId, IFormFile profileImage)
+        {
+            var validExtensions = new List<string>
+            {
+               ".jpeg",
+               ".png",
+               ".gif",
+               ".jpg"
+            };
 
-        //    if (profileImage != null && profileImage.Length > 0)
-        //    {
-        //        var extension = Path.GetExtension(profileImage.FileName);
-        //        if (validExtensions.Contains(extension))
-        //        {
-        //            if (await studentRepository.Exists(studentId))
-        //            {
-        //                var fileName = Guid.NewGuid() + Path.GetExtension(profileImage.FileName);
+            if (profileImage != null && profileImage.Length > 0)
+            {
+                var extension = Path.GetExtension(profileImage.FileName);
+                if (validExtensions.Contains(extension))
+                {
+                    if (await studentRepository.Exists(studentId))
+                    {
+                        var fileName = Guid.NewGuid() + Path.GetExtension(profileImage.FileName);
 
-        //                var fileImagePath = await imageRepository.Upload(profileImage, fileName);
+                        var fileImagePath = await imageRepository.Upload(profileImage, fileName);
 
-        //                if (await studentRepository.UpdateProfileImage(studentId, fileImagePath))
-        //                {
-        //                    return Ok(fileImagePath);
-        //                }
+                        if (await studentRepository.UpdateProfileImage(studentId, fileImagePath))
+                        {
+                            return Ok(fileImagePath);
+                        }
 
-        //                return StatusCode(StatusCodes.Status500InternalServerError, "Error uploading image");
-        //            }
-        //        }
+                        return StatusCode(StatusCodes.Status500InternalServerError, "Error uploading image");
+                    }
+                }
 
-        //        return BadRequest("This is not a valid Image format");
-        //    }
+                return BadRequest("This is not a valid Image format");
+            }
 
-        //    return NotFound();
-        //}
+            return NotFound();
+        }
     }
 }
